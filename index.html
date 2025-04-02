@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat IP Real</title>
+    <title>Chat con IP Pública</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --dark-color: #2b2d42;
-            --light-color: #f8f9fa;
-            --success-color: #4cc9f0;
-            --warning-color: #f8961e;
-            --danger-color: #f72585;
-            --gray-color: #adb5bd;
+            --primary-color: #8B0000;
+            --secondary-color: #600000;
+            --accent-color: #B22222;
+            --dark-color: #1A1A1A;
+            --light-color: #F5F5F5;
+            --success-color: #228B22;
+            --warning-color: #FF8C00;
+            --danger-color: #FF0000;
+            --gray-color: #696969;
         }
         
         * {
@@ -28,8 +28,8 @@
         
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f0f2f5;
-            color: var(--dark-color);
+            background-color: #1A1A1A;
+            color: #F5F5F5;
             line-height: 1.6;
         }
         
@@ -40,8 +40,8 @@
         }
         
         header {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background-color: #2A0000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             padding: 15px 0;
             margin-bottom: 30px;
         }
@@ -65,18 +65,19 @@
         }
         
         .user-id {
-            background-color: var(--light-color);
+            background-color: #300000;
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 14px;
             display: flex;
             align-items: center;
+            color: #F5F5F5;
         }
         
         .copy-btn {
             background: none;
             border: none;
-            color: var(--primary-color);
+            color: var(--accent-color);
             cursor: pointer;
             margin-left: 5px;
         }
@@ -89,26 +90,28 @@
         
         .sidebar {
             width: 300px;
-            background-color: white;
+            background-color: #2A0000;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             padding: 20px;
             overflow-y: auto;
+            border: 1px solid #400000;
         }
         
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: white;
+            background-color: #2A0000;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             overflow: hidden;
+            border: 1px solid #400000;
         }
         
         .chat-tabs {
             display: flex;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #400000;
         }
         
         .chat-tab {
@@ -116,10 +119,11 @@
             cursor: pointer;
             position: relative;
             font-weight: 500;
+            color: #A0A0A0;
         }
         
         .chat-tab.active {
-            color: var(--primary-color);
+            color: var(--accent-color);
         }
         
         .chat-tab.active::after {
@@ -129,23 +133,14 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background-color: var(--primary-color);
-        }
-        
-        .chat-tab .badge {
-            background-color: var(--danger-color);
-            color: white;
-            border-radius: 50%;
-            font-size: 12px;
-            padding: 2px 6px;
-            margin-left: 5px;
+            background-color: var(--accent-color);
         }
         
         .messages-container {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            background-color: #f9f9f9;
+            background-color: #1A0000;
         }
         
         .message {
@@ -158,10 +153,11 @@
         }
         
         .received {
-            background-color: white;
-            border: 1px solid #eee;
+            background-color: #400000;
+            border: 1px solid #500000;
             align-self: flex-start;
             border-top-left-radius: 5px;
+            color: #F5F5F5;
         }
         
         .sent {
@@ -177,7 +173,7 @@
         }
         
         .private .sent {
-            border-right: 3px solid var(--success-color);
+            border-right: 3px solid #FF4500;
         }
         
         .message-info {
@@ -197,8 +193,8 @@
         
         .input-area {
             padding: 15px;
-            border-top: 1px solid #eee;
-            background-color: white;
+            border-top: 1px solid #400000;
+            background-color: #2A0000;
         }
         
         .input-row {
@@ -209,16 +205,18 @@
         #message-input {
             flex: 1;
             padding: 12px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid #500000;
             border-radius: 25px;
             resize: none;
             font-family: inherit;
             outline: none;
             transition: border 0.3s;
+            background-color: #300000;
+            color: #F5F5F5;
         }
         
         #message-input:focus {
-            border-color: var(--primary-color);
+            border-color: var(--accent-color);
         }
         
         .send-btn {
@@ -247,9 +245,11 @@
         .recipient-input {
             width: 100%;
             padding: 10px 15px;
-            border: 1px solid #ddd;
+            border: 1px solid #500000;
             border-radius: 25px;
             font-family: inherit;
+            background-color: #300000;
+            color: #F5F5F5;
         }
         
         .user-list {
@@ -271,10 +271,11 @@
             display: flex;
             align-items: center;
             margin-bottom: 5px;
+            color: #F5F5F5;
         }
         
         .user-item:hover {
-            background-color: #f0f2f5;
+            background-color: #400000;
         }
         
         .user-status {
@@ -300,7 +301,7 @@
             color: white;
             padding: 15px 20px;
             border-radius: 5px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
             transform: translateY(100px);
             opacity: 0;
             transition: all 0.3s ease;
@@ -322,9 +323,9 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            border: 3px solid rgba(139, 0, 0, 0.3);
             border-radius: 50%;
-            border-top-color: var(--primary-color);
+            border-top-color: var(--accent-color);
             animation: spin 1s ease-in-out infinite;
             margin-right: 10px;
         }
@@ -353,7 +354,7 @@
 <body>
     <header>
         <div class="container header-content">
-            <div class="logo">Chat IP Real</div>
+            <div class="logo">Chat Rojo</div>
             <div class="user-info">
                 <div class="user-id" id="user-id-display">
                     <span id="user-ip"><span class="loading"></span>Obteniendo IP...</span>
@@ -425,54 +426,68 @@
         let userIP = '';
         let activeUsers = {};
         
-        // Obtener la IP del usuario con múltiples métodos
-        async function getUserIP() {
+        // Servicios alternativos para obtener IP pública
+        const IP_SERVICES = [
+            'https://api.ipify.org?format=json',
+            'https://ipapi.co/json/',
+            'https://ipinfo.io/json',
+            'https://icanhazip.com',
+            'https://ident.me/'
+        ];
+        
+        // Obtener IP pública con múltiples intentos
+        async function getPublicIP() {
             const ipDisplay = document.getElementById('user-ip');
             const copyBtn = document.getElementById('copy-ip-btn');
             
-            try {
-                // Método 1: ipify
+            // Mostrar estado de carga
+            ipDisplay.innerHTML = '<span class="loading"></span>Detectando IP pública...';
+            
+            // Probar cada servicio hasta que uno funcione
+            for (const service of IP_SERVICES) {
                 try {
-                    const response = await fetch('https://api.ipify.org?format=json');
-                    if (!response.ok) throw new Error('Error en la respuesta');
+                    const response = await fetch(service, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    
+                    if (!response.ok) continue;
+                    
                     const data = await response.json();
-                    userIP = data.ip;
-                    ipDisplay.innerHTML = userIP;
-                    copyBtn.disabled = false;
-                    initializeChat();
-                    return;
-                } catch (e) {
-                    console.log('Método ipify falló, intentando alternativo...');
+                    
+                    // Diferentes servicios devuelven la IP en diferentes propiedades
+                    userIP = data.ip || data.ip_address || await response.text();
+                    
+                    if (typeof userIP === 'string') {
+                        userIP = userIP.trim();
+                        
+                        // Validar que sea una IP válida
+                        if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(userIP) || 
+                            /^([a-f0-9:]+:+)+[a-f0-9]+$/.test(userIP)) {
+                            ipDisplay.textContent = userIP;
+                            copyBtn.disabled = false;
+                            return userIP;
+                        }
+                    }
+                } catch (error) {
+                    console.log(`Servicio ${service} falló, intentando siguiente...`);
                 }
-                
-                // Método 2: icanhazip
-                try {
-                    const response = await fetch('https://icanhazip.com');
-                    if (!response.ok) throw new Error('Error en la respuesta');
-                    const ip = await response.text();
-                    userIP = ip.trim();
-                    ipDisplay.innerHTML = userIP;
-                    copyBtn.disabled = false;
-                    initializeChat();
-                    return;
-                } catch (e) {
-                    console.log('Método icanhazip falló, usando fallback...');
-                }
-                
-                // Fallback: ID aleatorio
-                throw new Error('Todos los métodos fallaron');
-                
+            }
+            
+            // Si todos fallan, usar ID aleatorio
+            throw new Error('No se pudo obtener IP pública');
+        }
+        
+        // Inicializar el chat
+        async function initializeChat() {
+            try {
+                userIP = await getPublicIP();
             } catch (error) {
                 console.error('Error al obtener IP:', error);
                 userIP = 'user-' + Math.floor(Math.random() * 1000000);
-                ipDisplay.innerHTML = userIP + ' (ID aleatorio)';
-                copyBtn.disabled = false;
-                initializeChat();
+                document.getElementById('user-ip').textContent = userIP + ' (ID alternativo)';
+                document.getElementById('copy-ip-btn').disabled = false;
             }
-        }
-        
-        // Inicializar el chat después de obtener la IP
-        function initializeChat() {
+            
             registerActiveUser();
             listenToActiveUsers();
             loadGroupMessages();
@@ -598,7 +613,7 @@
             document.getElementById('copy-ip-btn').addEventListener('click', copyIPToClipboard);
         }
         
-        // Función para enviar mensajes (corregida)
+        // Función para enviar mensajes
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const messageText = messageInput.value.trim();
@@ -750,7 +765,7 @@
         // Copiar IP al portapapeles
         function copyIPToClipboard() {
             navigator.clipboard.writeText(userIP)
-                .then(() => showNotification('IP copiada al portapeles'))
+                .then(() => showNotification('IP copiada al portapapeles'))
                 .catch(err => {
                     console.error('Error al copiar IP:', err);
                     showNotification('Error al copiar IP');
@@ -764,7 +779,7 @@
         }
         
         // Iniciar la aplicación
-        getUserIP();
+        initializeChat();
     </script>
 </body>
 </html>
