@@ -424,15 +424,14 @@
         let recipientIP = '';
         let userIP = '';
         let activeUsers = {};
-        let ipDetectionAttempted = false;
         
-        // Obtener la IP del usuario con múltiples métodos de respaldo
+        // Obtener la IP del usuario con múltiples métodos
         async function getUserIP() {
             const ipDisplay = document.getElementById('user-ip');
             const copyBtn = document.getElementById('copy-ip-btn');
             
             try {
-                // Intento con ipify (método principal)
+                // Método 1: ipify
                 try {
                     const response = await fetch('https://api.ipify.org?format=json');
                     if (!response.ok) throw new Error('Error en la respuesta');
@@ -446,7 +445,7 @@
                     console.log('Método ipify falló, intentando alternativo...');
                 }
                 
-                // Intento alternativo con icanhazip
+                // Método 2: icanhazip
                 try {
                     const response = await fetch('https://icanhazip.com');
                     if (!response.ok) throw new Error('Error en la respuesta');
@@ -460,12 +459,11 @@
                     console.log('Método icanhazip falló, usando fallback...');
                 }
                 
-                // Fallback final
+                // Fallback: ID aleatorio
                 throw new Error('Todos los métodos fallaron');
                 
             } catch (error) {
                 console.error('Error al obtener IP:', error);
-                // Fallback con ID aleatorio
                 userIP = 'user-' + Math.floor(Math.random() * 1000000);
                 ipDisplay.innerHTML = userIP + ' (ID aleatorio)';
                 copyBtn.disabled = false;
@@ -475,24 +473,21 @@
         
         // Inicializar el chat después de obtener la IP
         function initializeChat() {
-            // Registrar usuario como activo
             registerActiveUser();
-            
-            // Escuchar cambios en usuarios activos
             listenToActiveUsers();
-            
-            // Cargar mensajes grupales iniciales
             loadGroupMessages();
-            
-            // Configurar event listeners
             setupEventListeners();
+        }
+        
+        // Codificar IP para usar como clave en Firebase
+        function encodeIP(ip) {
+            return ip.replace(/\./g, '_').replace(/:/g, '-');
         }
         
         // Registrar usuario como activo
         function registerActiveUser() {
             const userRef = database.ref(`active_users/${encodeIP(userIP)}`);
             
-            // Actualizar último visto
             userRef.set({
                 ip: userIP,
                 lastSeen: firebase.database.ServerValue.TIMESTAMP
@@ -502,16 +497,6 @@
             window.addEventListener('beforeunload', () => {
                 userRef.remove();
             });
-        }
-        
-        // Codificar IP para usar como clave en Firebase
-        function encodeIP(ip) {
-            return ip.replace(/\./g, '_').replace(/:/g, '-');
-        }
-        
-        // Decodificar IP
-        function decodeIP(encoded) {
-            return encoded.replace(/_/g, '.').replace(/-/g, ':');
         }
         
         // Escuchar usuarios activos
@@ -525,7 +510,6 @@
         // Actualizar lista de usuarios activos
         function updateActiveUsersList() {
             const activeUsersContainer = document.getElementById('active-users');
-            
             const now = Date.now();
             const fiveMinutesAgo = now - 5 * 60 * 1000;
             
@@ -548,7 +532,6 @@
                     ${user.ip} ${user.ip === userIP ? '(Tú)' : ''}
                 `;
                 
-                // Hacer clic en usuario para chat privado
                 if (user.ip !== userIP) {
                     userElement.addEventListener('click', () => {
                         document.querySelector(`.chat-tab[data-tab="private"]`).click();
@@ -571,7 +554,6 @@
                     tab.classList.add('active');
                     currentTab = tab.dataset.tab;
                     
-                    // Mostrar/ocultar campo de destinatario
                     const recipientControl = document.getElementById('recipient-control');
                     if (currentTab === 'private') {
                         recipientControl.style.display = 'block';
@@ -597,13 +579,14 @@
                 }
             });
             
-            // Enviar mensaje
-            document.getElementById('message-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                sendMessage();
-            });
-            
+            // Enviar mensaje al hacer clic o presionar Enter
             document.getElementById('send-btn').addEventListener('click', sendMessage);
+            document.getElementById('message-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
             
             // Autoajustar altura del textarea
             document.getElementById('message-input').addEventListener('input', function() {
@@ -615,57 +598,72 @@
             document.getElementById('copy-ip-btn').addEventListener('click', copyIPToClipboard);
         }
         
-        // Enviar mensaje
+        // Función para enviar mensajes (corregida)
         function sendMessage() {
             const messageInput = document.getElementById('message-input');
             const messageText = messageInput.value.trim();
             
-            if (!messageText) return;
+            if (!messageText) {
+                showNotification('Escribe un mensaje primero');
+                return;
+            }
+            
+            if (!userIP) {
+                showNotification('Espera a que se cargue tu IP');
+                return;
+            }
             
             const timestamp = new Date().getTime();
-            let messageRef;
-            let messageData;
             
             if (currentTab === 'group') {
-                // Mensaje grupal
-                messageRef = database.ref('group_messages');
-                messageData = {
+                // Enviar mensaje grupal
+                database.ref('group_messages').push({
                     senderIP: userIP,
                     text: messageText,
                     timestamp: timestamp,
                     type: 'group'
-                };
-                
-                // Guardar en la base de datos
-                messageRef.push(messageData);
+                })
+                .then(() => {
+                    messageInput.value = '';
+                    messageInput.style.height = 'auto';
+                    scrollToBottom();
+                })
+                .catch(error => {
+                    console.error('Error al enviar mensaje grupal:', error);
+                    showNotification('Error al enviar mensaje');
+                });
             } else {
-                // Mensaje privado
+                // Enviar mensaje privado
                 if (!recipientIP) {
                     showNotification('Ingresa una IP de destinatario');
                     return;
                 }
                 
-                // Crear dos entradas: una para cada usuario en la conversación
                 const messageId = database.ref().child('private_messages').push().key;
-                messageData = {
+                const messageData = {
                     senderIP: userIP,
                     recipientIP: recipientIP,
                     text: messageText,
                     timestamp: timestamp,
-                    type: 'private'
+                    type: 'private',
+                    messageId: messageId
                 };
                 
-                // Guardar en ambos nodos de la conversación
                 const updates = {};
                 updates[`private_messages/${encodeIP(userIP)}/${encodeIP(recipientIP)}/${messageId}`] = messageData;
                 updates[`private_messages/${encodeIP(recipientIP)}/${encodeIP(userIP)}/${messageId}`] = messageData;
                 
-                database.ref().update(updates);
+                database.ref().update(updates)
+                    .then(() => {
+                        messageInput.value = '';
+                        messageInput.style.height = 'auto';
+                        scrollToBottom();
+                    })
+                    .catch(error => {
+                        console.error('Error al enviar mensaje privado:', error);
+                        showNotification('Error al enviar mensaje privado');
+                    });
             }
-            
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-            scrollToBottom();
         }
         
         // Cargar mensajes grupales
@@ -712,7 +710,7 @@
             });
         }
         
-        // Mostrar mensaje
+        // Mostrar mensaje en el chat
         function displayMessage(message, type) {
             const messagesContainer = document.getElementById('messages-container');
             const messageElement = document.createElement('div');
@@ -731,14 +729,14 @@
             
             messagesContainer.appendChild(messageElement);
             
-            // Si es un mensaje nuevo y no lo enviamos nosotros, mostrar notificación
+            // Notificación para mensajes nuevos
             if (!isSent && message.timestamp > Date.now() - 10000) {
                 const tab = type === 'group' ? 'Grupal' : 'Privado';
                 showNotification(`Nuevo mensaje en chat ${tab} de ${message.senderIP}`);
             }
         }
         
-        // Función para mostrar notificaciones
+        // Mostrar notificación
         function showNotification(text) {
             const notification = document.getElementById('notification');
             notification.textContent = text;
@@ -749,14 +747,14 @@
             }, 3000);
         }
         
-        // Función para copiar IP
+        // Copiar IP al portapapeles
         function copyIPToClipboard() {
-            navigator.clipboard.writeText(userIP).then(() => {
-                showNotification('IP copiada al portapapeles');
-            }).catch(err => {
-                console.error('Error al copiar IP:', err);
-                showNotification('Error al copiar IP');
-            });
+            navigator.clipboard.writeText(userIP)
+                .then(() => showNotification('IP copiada al portapeles'))
+                .catch(err => {
+                    console.error('Error al copiar IP:', err);
+                    showNotification('Error al copiar IP');
+                });
         }
         
         // Scroll al final del chat
